@@ -145,6 +145,11 @@ class CC_Group_Member_Profile_Fields {
 		// require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-cc-group-pages-loader.php';
 
 		/**
+		 * The BuddyPress group extension class.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-grpf-group-extension.php';
+
+		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
@@ -168,7 +173,7 @@ class CC_Group_Member_Profile_Fields {
 		/**
 		 * The templates file.
 		 */
-		// require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/partials/cc-mrad-public-display.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/partials/cc-grpf-public-display.php';
 
 
 		// $this->loader = new CC_Group_Pages_Loader();
@@ -219,9 +224,47 @@ class CC_Group_Member_Profile_Fields {
 
 		$plugin_public = new CC_GRPF_Public( $this->get_plugin_name(), $this->get_version() );
 
+		/* DISPLAY ***********************************************************/
+		// On a user's profile, only show the profile field groups to members of the associated groups.
+		// In wp-admin, add the "associated groups" string to the end of the profile group's description.
+		add_filter( 'bp_xprofile_get_groups', array( $plugin_public, 'filter_fieldgroups' ), 10, 2 );
+
 		// @TODO: Scope these
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_styles') );
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_scripts') );
+
+		/* ASSOCIATE PROFILE GROUPS WITH HUBS ********************************/
+		// Add a meta area to the group's "admin>settings" tab.
+   		// We're also using BP_Group_Extension's admin_screen method to add this meta box to the WP-admin group edit
+        add_filter( 'groups_custom_group_fields_editable', array( $plugin_public, 'meta_form_markup' ) );
+        // Catch the saving of the meta form, fired when create>settings pane is saved or admin>settings is saved
+        add_action( 'groups_group_details_edited', array( $plugin_public, 'meta_form_save') );
+		add_action( 'groups_created_group', array( $plugin_public, 'meta_form_save' ) );
+
+		/* NOTIFICATIONS *****************************************************/
+		// Format the output of the "please fill out your profile" notifications.
+		// Note that this requires a change to BP that will be included in 2.4.
+		add_filter( 'bp_groups_complete_group_profile_notification', array( $plugin_public, 'group_profile_notification_description' ), 10, 5 );
+
+		// When a member joins a public group that requires extra profile info, notify that user.
+		add_action( 'groups_join_group', array( $plugin_public, 'join_group_profile_notification_handler' ), 10, 2 );
+		// When a member accepts an invite, or a request is accepted, and the group requires more info, notify the user.
+		add_action( 'groups_accept_invite', array( $plugin_public, 'invite_request_profile_notification_handler' ), 10, 2 );
+		add_action( 'groups_membership_accepted', array( $plugin_public, 'invite_request_profile_notification_handler' ), 10, 2 );
+
+		// When a member fills out the proper form, mark the notification as read.
+		add_action( 'xprofile_updated_profile', array( $plugin_public, 'maybe_mark_read_profile_notification' ), 10, 5 );
+
+		/* MEMBERSHIP REQUESTS ***********************************************/
+		// Ask membership-request users to fill out related forms on the request form.
+		// Add the group profile form to the request form
+		add_action( 'bp_group_request_membership_content', array( $plugin_public, 'add_profile_field_group_form' ) );
+
+		// Process the responses of the form on the group requests page.
+		add_action( 'groups_membership_requested', array( $plugin_public, 'process_group_requests_profile_form' ), 10, 4 );
+
+		// @TODO: BP may add a filter that we could use to stop requests. Doesn't exist currently.
+		// add_filter( 'groups_membership_request_is_allowed', array( $plugin_public, 'pre_membership_request_check' ), 10, 2 );
 
 	}
 
