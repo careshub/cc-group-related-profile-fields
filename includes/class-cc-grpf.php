@@ -191,7 +191,7 @@ class CC_Group_Member_Profile_Fields {
 	 */
 	private function set_locale() {
 
-		$plugin_i18n = new CC_MRAD_i18n();
+		$plugin_i18n = new CC_GRPF_i18n();
 		$plugin_i18n->set_domain( $this->get_plugin_name() );
 
 		add_action( 'plugins_loaded', array( $plugin_i18n, 'load_plugin_textdomain' ) );
@@ -228,6 +228,9 @@ class CC_Group_Member_Profile_Fields {
 		// On a user's profile, only show the profile field groups to members of the associated groups.
 		// In wp-admin, add the "associated groups" string to the end of the profile group's description.
 		add_filter( 'bp_xprofile_get_groups', array( $plugin_public, 'filter_fieldgroups' ), 10, 2 );
+		// Within a group, add the extra profile info to the group's members list.
+		add_action( 'bp_group_members_list_item', array( $plugin_public, 'add_fieldgroups_to_group_member_list' ) );
+		add_action( 'bp_init', array( $plugin_public, 'modify_profile_search_links_on_group_member_dir' ) );
 
 		// @TODO: Scope these
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_styles') );
@@ -262,6 +265,8 @@ class CC_Group_Member_Profile_Fields {
 
 		// Process the responses of the form on the group requests page.
 		add_action( 'groups_membership_requested', array( $plugin_public, 'process_group_requests_profile_form' ), 10, 4 );
+
+		add_action( 'bp_group_membership_requests_admin_item', array( $plugin_public, 'add_profile_field_data_to_member_requests_display' ) );
 
 		// @TODO: BP may add a filter that we could use to stop requests. Doesn't exist currently.
 		// add_filter( 'groups_membership_request_is_allowed', array( $plugin_public, 'pre_membership_request_check' ), 10, 2 );

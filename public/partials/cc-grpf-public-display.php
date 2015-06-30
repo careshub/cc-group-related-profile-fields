@@ -163,6 +163,74 @@ function grpf_output_profile_group_form_field_entries( $field_group_id, $user_id
 }
 
 /**
+ *  Display a field group's field data for a specified user in an unordered list.
+ *
+ *  @param  	int $field_group_id
+ *  @param  	int $user_id
+ *  @return 	html
+ *  @since    	1.0.0
+ */
+function grpf_output_profile_group_form_field_entries_no_table( $field_group_id, $user_id ) {
+	$args = array(
+		'user_id' => $user_id,
+		'profile_group_id' => $field_group_id,
+		);
+	if ( bp_has_profile( $args ) ) : ?>
+
+	<?php while ( bp_profile_groups() ) : bp_the_profile_group(); ?>
+
+		<?php if ( bp_profile_group_has_fields() ) : ?>
+
+			<div class="profile-field-list <?php bp_the_profile_group_slug(); ?>">
+
+				<ul class="profile-fields">
+
+					<?php while ( bp_profile_fields() ) : bp_the_profile_field(); ?>
+
+						<?php if ( bp_field_has_data() ) : ?>
+
+							<li<?php bp_field_css_class(); ?>>
+
+								<span class="label"><?php bp_the_profile_field_name(); ?>:</span>
+
+								<span class="data"><?php bp_the_profile_field_value(); ?></span>
+
+							</li>
+
+						<?php endif; ?>
+
+						<?php
+
+						/**
+						 * Fires after the display of a field table row for profile data.
+						 *
+						 * @since BuddyPress (1.1.0)
+						 */
+						do_action( 'bp_profile_field_item' ); ?>
+
+					<?php endwhile; ?>
+
+				</ul>
+			</div>
+
+			<?php
+
+			/** This action is documented in bp-templates/bp-legacy/buddypress/members/single/profile/profile-wp.php */
+			do_action( 'bp_after_profile_field_content' ); ?>
+
+		<?php endif; ?>
+
+	<?php endwhile; ?>
+
+	<?php
+
+	/** This action is documented in bp-templates/bp-legacy/buddypress/members/single/profile/profile-wp.php */
+	do_action( 'bp_profile_field_buttons' ); ?>
+
+<?php endif;
+}
+
+/**
  *  Create an html string of the hubs that are associated with a field group.
  *
  *  @param  	int $field_group_id

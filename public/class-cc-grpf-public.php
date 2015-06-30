@@ -60,8 +60,9 @@ class CC_GRPF_Public {
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
-
-		// wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/cc-mrad-public.css', array(), $this->version, 'all' );
+		if ( bp_is_group_members() ) {
+			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/cc-grpf-public.css', array(), $this->version, 'all' );
+		}
 	}
 
 	/**
@@ -85,6 +86,8 @@ class CC_GRPF_Public {
 		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/cc-group-pages-edit.js', array( 'jquery' ), $this->version, false );
 
 	}
+
+	/* DISPLAY ***************************************************************/
 
 	/**
 	 * On front end, return the fieldgroups filtered by the current user's group membership.
@@ -138,6 +141,117 @@ class CC_GRPF_Public {
 		}
 
 		return $field_groups;
+	}
+
+	/**
+	 *  Show group-related profile data on the group membership requests admin pane.
+	 *
+	 *  @return html The form field data.
+	 *  @since  1.0.0
+	 */
+	public function add_profile_field_data_to_member_requests_display() {
+		global $requests_template;
+		// echo '<pre>'; print_r($requests_template); echo '</pre>';
+		$user_id = $requests_template->request->user_id;
+		$group_id = $requests_template->request->group_id;
+		$field_group_ids = grpf_get_associated_field_groups( $group_id );
+
+		if ( empty( $user_id ) || empty( $field_group_ids ) ) {
+			return;
+		}
+
+		foreach ( $field_group_ids as $field_group_id ) {
+			grpf_output_profile_group_form_field_entries( $field_group_id, $user_id );
+		}
+	}
+
+	/**
+	 *  Show group-related profile data on the group member list.
+	 *
+	 *  @return html The form field data.
+	 *  @since  1.0.0
+	 */
+	public function add_fieldgroups_to_group_member_list() {
+		$user_id = bp_get_group_member_id();
+		$group_id = bp_get_current_group_id();
+		$field_group_ids = grpf_get_associated_field_groups( $group_id );
+
+		if ( empty( $user_id ) || empty( $field_group_ids ) ) {
+			return;
+		}
+
+		foreach ( $field_group_ids as $field_group_id ) {
+			grpf_output_profile_group_form_field_entries_no_table( $field_group_id, $user_id );
+		}
+	}
+
+	/**
+	 *  Profile links on group member directory lists should link back to the group members directory.
+	 *
+	 *  @return html The form field data.
+	 *  @since  1.0.0
+	 */
+	public function modify_profile_search_links_on_group_member_dir() {
+		if ( bp_is_group_members() ) {
+			remove_filter( 'bp_get_the_profile_field_value', 'xprofile_filter_link_profile_data', 9, 2 );
+			add_filter( 'bp_get_the_profile_field_value', array( $this, 'group_members_filter_link_profile_data' ), 9, 2 );
+		}
+
+	}
+
+	/**
+	 * Filter an Extended Profile field value, and attempt to make clickable links
+	 * to group members search results out of them. Taken from xprofile_filter_link_profile_data().
+	 *
+	 * - Not run on datebox field types
+	 * - Not run on values without commas with less than 5 words
+	 * - URL's are made clickable
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param string $field_value
+	 * @param string  $field_type
+	 * @return string
+	 */
+	public function group_members_filter_link_profile_data( $field_value, $field_type = 'textbox' ) {
+
+		if ( 'datebox' === $field_type ) {
+			return $field_value;
+		}
+
+		if ( !strpos( $field_value, ',' ) && ( count( explode( ' ', $field_value ) ) > 5 ) ) {
+			return $field_value;
+		}
+
+		$values = explode( ',', $field_value );
+
+		if ( !empty( $values ) ) {
+			foreach ( (array) $values as $value ) {
+				$value = trim( $value );
+
+				// If the value is a URL, skip it and just make it clickable.
+				if ( preg_match( '@(https?://([-\w\.]+)+(:\d+)?(/([\w/_\.]*(\?\S+)?)?)?)@', $value ) ) {
+					$new_values[] = make_clickable( $value );
+
+				// Is not clickable
+				} else {
+
+					// More than 5 spaces
+					if ( count( explode( ' ', $value ) ) > 5 ) {
+						$new_values[] = $value;
+
+					// Less than 5 spaces
+					} else {
+						$search_url   = add_query_arg( array( 's' => urlencode( $value ) ), bp_get_group_all_members_permalink() );
+						$new_values[] = '<a href="' . esc_url( $search_url ) . '" rel="nofollow">' . $value . '</a>';
+					}
+				}
+			}
+
+			$values = implode( ', ', $new_values );
+		}
+
+		return $values;
 	}
 
 	/* PROFILE GROUP META/HUB ASSOCIATION FORM ******************************/
@@ -429,7 +543,9 @@ class CC_GRPF_Public {
 			// fwrite($fp, $towrite);
 			if ( $total_items > 1 ) {
 				$text = __( 'Please complete your Hub profiles', $this->plugin_name );
-				$notification_link = trailingslashit( bp_loggedin_user_domain() . bp_get_profile_slug() . '/edit' );
+				// @TODO: Switch back to this.
+				// $notification_link = trailingslashit( bp_loggedin_user_domain() . bp_get_profile_slug() . '/edit' );
+				$notification_link = trailingslashit( bp_loggedin_user_domain() . buddypress()->profile->slug . '/edit' );
 
 				// $towrite = PHP_EOL . 'multiple items!: ' . print_r( $total_items, TRUE );
 				// $towrite = PHP_EOL . '$text: ' . print_r( $text, TRUE );
@@ -460,8 +576,9 @@ class CC_GRPF_Public {
 				// $group_link = bp_get_group_permalink( $group );
 				$text = sprintf( __( 'Please complete your profile for the Hub %s', $this->plugin_name ), $group->name );
 				// $notification_link = $group_link . 'admin/membership-requests/?n=1';
-				$notification_link = trailingslashit( bp_loggedin_user_domain() . bp_get_profile_slug() . '/edit/group/' . $fieldgroup_id );
-
+				// @TODO: Switch back to this.
+				// $notification_link = trailingslashit( bp_loggedin_user_domain() . bp_get_profile_slug() . '/edit/group/' . $fieldgroup_id );
+				$notification_link = trailingslashit( bp_loggedin_user_domain() . buddypress()->profile->slug . '/edit/group/' . $fieldgroup_id );
 				// $towrite = PHP_EOL . 'single item!: ' . print_r( $total_items, TRUE );
 				// $towrite = PHP_EOL . '$text: ' . print_r( $text, TRUE );
 				// $towrite .= PHP_EOL . '$notification_link: ' . print_r( $notification_link, TRUE );
@@ -707,28 +824,6 @@ class CC_GRPF_Public {
 			}
 		}
 
-	}
-
-	/**
-	 *  Show group-related profile data on the group membership requests admin pane.
-	 *
-	 *  @return html The form field data.
-	 *  @since  1.0.0
-	 */
-	public function add_profile_field_data_to_member_requests_display() {
-		global $requests_template;
-		// echo '<pre>'; print_r($requests_template); echo '</pre>';
-		$user_id = $requests_template->request->user_id;
-		$group_id = $requests_template->request->group_id;
-		$field_group_ids = grpf_get_associated_field_groups( $group_id );
-
-		if ( empty( $user_id ) || empty( $field_group_ids ) ) {
-			return;
-		}
-
-		foreach ( $field_group_ids as $field_group_id ) {
-			grpf_output_profile_group_form_field_entries( $field_group_id, $user_id );
-		}
 	}
 
 	/* SAVE/DELETE XPROFILE META *********************************************/

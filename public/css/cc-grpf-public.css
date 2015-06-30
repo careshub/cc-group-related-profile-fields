@@ -2,3 +2,27 @@
  * All of the CSS for your public-facing functionality should be
  * included in this file.
  */
+/* Changes to the way the data is displayed on a group members list. */
+.group-members .item-list .profile-fields {
+	display: inline-block;
+	margin-top: 0;
+}
+.group-members .item-list .profile-fields li {
+	padding-bottom: 0;
+	padding-top: 0;
+	margin-bottom: 0;
+	border-bottom: none;
+}
+
+.group-members .item-list .profile-fields .label {
+	display: inline-block;
+	color: #777;
+	font-weight: 600;
+}
+.group-members .item-list .profile-fields .data {
+	display: inline-block;
+}
+.group-members .item-list .profile-fields .data p {
+	margin-bottom: 0;
+}
+
