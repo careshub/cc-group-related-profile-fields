@@ -174,6 +174,10 @@ class CC_Group_Member_Profile_Fields {
 		 * The templates file.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/partials/cc-grpf-public-display.php';
+		/**
+		 * Extended profile field visibility options.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-grpf-xprofile-visibility.php';
 
 
 		// $this->loader = new CC_Group_Pages_Loader();
@@ -270,6 +274,24 @@ class CC_Group_Member_Profile_Fields {
 
 		// @TODO: BP may add a filter that we could use to stop requests. Doesn't exist currently.
 		// add_filter( 'groups_membership_request_is_allowed', array( $plugin_public, 'pre_membership_request_check' ), 10, 2 );
+
+		/* BP XPROFILE FIELD VISIBILITY **************************************/
+		$plugin_xprofile_vis = new CC_GRPF_Xprofile_Visibility( $this->get_plugin_name(), $this->get_version() );
+
+		// Add "groupadmins" field visibility. Useful for group-related fields.
+		add_filter( 'bp_xprofile_get_visibility_levels', array( $plugin_xprofile_vis, 'filter_xprofile_visibility_levels' ) );
+		// Remove the groupadmins visibility setting for fields that are not
+	    // part of group-related field groups.
+		add_filter( 'bp_profile_get_visibility_radio_buttons', array( $plugin_xprofile_vis, 'filter_get_visibility_radio_buttons' ), 17, 3 );
+
+		// We have to provide some logic for our new visibility setting.
+		// Mostly, fields with the visibility "groupadmins" are hidden.
+		add_filter( 'bp_xprofile_get_hidden_field_types_for_user', array( $plugin_xprofile_vis, 'filter_get_hidden_field_types_for_user' ), 18, 3 );
+
+		// Show fields with the vis "groupadmins" when appropriate.
+		add_filter('bp_xprofile_get_hidden_fields_for_user', array( $plugin_xprofile_vis, 'filter_get_hidden_fields_for_user' ), 10, 3);
+
+		// @ TODO: Change vis labels to reflect group relation, like in non-public groups, "All members" -> "All Hub members"
 
 	}
 
