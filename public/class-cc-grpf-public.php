@@ -329,7 +329,7 @@ class CC_GRPF_Public {
  	 * 	Used by CC_Custom_Meta_Group_Extension::admin_screen_save()
  	 *  @param  	int $group_id
 	 *  @return 	void
-	 *  @since    	0.1.0
+	 *  @since    	1.0.0
 	 */
 	public function meta_form_save( $group_id = 0 ) {
 		$group_id = $group_id ? $group_id : bp_get_current_group_id();
@@ -395,11 +395,46 @@ class CC_GRPF_Public {
 
 		if ( ! empty( $field_groups_to_delete ) ) {
 			foreach ( $field_groups_to_delete as $delete_id ) {
+
 				$this->disassociate_hub_from_field_group( $delete_id, $group_id );
+				// Delete notifications for this group.
 				if ( $members['count'] > 0 ) {
 					foreach ( $members['members'] as $member) {
-						// Delete notifications for this group.
 						$this->delete_group_profile_nag_notification( $member->ID, $group_id, $delete_id );
+					}
+				}
+
+				// If the profile field group is no longer associated with any group,
+				// we need to unset the visibility setting "groupadmins" because it makes no sense.
+				$associated_group_ids = grpf_get_associated_groups_for_field_group( $delete_id );
+				if ( empty( $associated_group_ids ) ) {
+					// Loop through each of the profile field group's fields and check the vis setting.
+					$field_group = current( bp_xprofile_get_groups( array(
+						'profile_group_id'       => $delete_id,
+						'fetch_fields'           => true,
+						'fetch_visibility_level' => true,
+						'update_meta_cache'      => false,
+						) ) );
+
+					$towrite = PHP_EOL . 'field group to update: ' . print_r( $field_group, TRUE );
+					$fp = fopen('profile_group_update_visibility.txt', 'a');
+					fwrite($fp, $towrite);
+
+					foreach ( $field_group->fields as $field ) {
+						// Change the field's default visibility.
+						if ( 'groupadmins' == $field->visibility_level  ) {
+							bp_xprofile_update_meta( $field->id, 'field', 'default_visibility', 'adminsonly' );
+						}
+
+						// Update all user-selected visibility for this field.
+						// Find every user who has answered this question.
+						$user_ids = grpf_get_users_with_entry_for_field( $field->id );
+						foreach ( $user_ids as $user_id) {
+							// If they've selected "groupadmins" make it private to be safe.
+							if ( 'groupadmins' == xprofile_get_field_visibility_level( $field->id, $user_id ) ) {
+								xprofile_set_field_visibility_level( $field->id, $user_id, 'adminsonly' );
+							}
+						}
 					}
 				}
 			}

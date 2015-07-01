@@ -67,3 +67,29 @@ function grpf_get_associated_groups_for_field_group( $field_group_id ) {
 
 	return array_map( 'intval', $group_ids );
 }
+/**
+ *  Get users who have an entry for a specific profile field.
+ *
+ *  @param  	int $hub_id
+ *  @return 	array of related group ids
+ *  @since    	1.0.0
+ */
+function grpf_get_users_with_entry_for_field( $field_id ) {
+	global $wpdb;
+	$bp = buddypress();
+
+	// @TODO: Seems like there should be a better way, but maybe not.
+	// Maybe use a profile meta query
+
+	$user_ids = $wpdb->get_col( $wpdb->prepare(
+			"
+			SELECT      user_id
+			FROM        {$bp->profile->table_name_data}
+			WHERE       field_id = %d
+			",
+			$field_id
+		)
+	);
+
+	return array_map( 'intval', $user_ids );
+}
