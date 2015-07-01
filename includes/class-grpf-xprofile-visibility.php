@@ -89,7 +89,8 @@ class CC_GRPF_Xprofile_Visibility {
 		$field = xprofile_get_field( $parsed_args['field_id'] );
 
 		// If not, return the options, which include our group-related visibility option.
-		if ( ! empty( grpf_get_associated_groups_for_field_group( $field->group_id ) ) ) {
+		$associated_groups = grpf_get_associated_groups_for_field_group( $field->group_id );
+		if ( ! empty( $associated_groups ) ) {
 			return $retval;
 		}
 

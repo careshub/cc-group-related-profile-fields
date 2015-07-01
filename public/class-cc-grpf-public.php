@@ -416,10 +416,6 @@ class CC_GRPF_Public {
 						'update_meta_cache'      => false,
 						) ) );
 
-					$towrite = PHP_EOL . 'field group to update: ' . print_r( $field_group, TRUE );
-					$fp = fopen('profile_group_update_visibility.txt', 'a');
-					fwrite($fp, $towrite);
-
 					foreach ( $field_group->fields as $field ) {
 						// Change the field's default visibility.
 						if ( 'groupadmins' == $field->visibility_level  ) {
