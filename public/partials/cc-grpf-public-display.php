@@ -23,7 +23,7 @@
  */
 function grpf_output_profile_group_form_fields( $field_group_id ) {
 
-	if ( bp_has_profile( 'profile_group_id=' . $field_group_id ) ) :
+	if ( bp_has_profile( array( 'profile_group_id' => $field_group_id, 'fetch_visibility_level' => true ) ) ) :
 		while ( bp_profile_groups() ) : bp_the_profile_group(); ?>
 
 		<?php
