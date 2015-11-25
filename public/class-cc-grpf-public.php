@@ -467,9 +467,6 @@ class CC_GRPF_Public {
 			)
 		);
 
-		$towrite = PHP_EOL . 'create_group_profile_nag_notification: ' . $user_id . ' | ' . $group_id . ' | ' . $field_group_id;
-
-
 		$must_notify = false;
 		if ( !empty( $field_group ) ) {
 			$fields = current( $field_group )->fields;
@@ -482,10 +479,6 @@ class CC_GRPF_Public {
 				}
 			}
 		}
-
-		$towrite .= PHP_EOL . 'must notify?: ' . print_r( $must_notify, TRUE );
-		$fp = fopen('profile_group_notification.txt', 'a');
-		fwrite($fp, $towrite);
 
 		if ( $must_notify ) {
 			return bp_notifications_add_notification( array(
@@ -545,7 +538,7 @@ class CC_GRPF_Public {
 		}
 
 		// Bail out if we don't know who shot what in the what-now!
-		if ( empty( $group_id ) || empty( $group_id ) ) {
+		if ( empty( $user_id ) || empty( $group_id ) ) {
 			return false;
 		}
 
@@ -565,34 +558,15 @@ class CC_GRPF_Public {
 	 */
 	public function group_profile_notification_description( $notification, $item_id, $secondary_item_id, $total_items, $format = 'string' ) {
 
-			// $towrite = PHP_EOL . 'in group_profile_nag_notification_description, $action: ' . print_r( $action, TRUE );
-			// $towrite .= PHP_EOL . '$item_id: ' . print_r( $item_id, TRUE );
-			// $towrite .= PHP_EOL . '$secondary_item_id: ' . print_r( $secondary_item_id, TRUE );
-			// $towrite .= PHP_EOL . '$total_items: ' . print_r( $total_items, TRUE );
-			// $towrite .= PHP_EOL . '$format: ' . print_r( $format, TRUE );
-			// $fp = fopen('profile_group_notification.txt', 'a');
-			// fwrite($fp, $towrite);
 			if ( $total_items > 1 ) {
 				$text = __( 'Please complete your Hub profiles', $this->plugin_name );
 				// @TODO: Switch back to this.
 				// $notification_link = trailingslashit( bp_loggedin_user_domain() . bp_get_profile_slug() . '/edit' );
 				$notification_link = trailingslashit( bp_loggedin_user_domain() . buddypress()->profile->slug . '/edit' );
 
-				// $towrite = PHP_EOL . 'multiple items!: ' . print_r( $total_items, TRUE );
-				// $towrite = PHP_EOL . '$text: ' . print_r( $text, TRUE );
-				// $towrite .= PHP_EOL . '$notification_link: ' . print_r( $notification_link, TRUE );
-				// $fp = fopen('profile_group_notification.txt', 'a');
-				// fwrite($fp, $towrite);
-
 				if ( 'string' == $format ) {
-					$towrite = PHP_EOL . 'returning a string!';
-					$fp = fopen('profile_group_notification.txt', 'a');
-					fwrite($fp, $towrite);
 					return '<a href="' . $notification_link . '" title="Complete your Hub profile.">' . $text . '</a>';
 				} else {
-					$towrite = PHP_EOL . 'returning an array!';
-					$fp = fopen('profile_group_notification.txt', 'a');
-					fwrite($fp, $towrite);
 					return array(
 						'link' => $notification_link,
 						'text' => $text
@@ -610,21 +584,11 @@ class CC_GRPF_Public {
 				// @TODO: Switch back to this.
 				// $notification_link = trailingslashit( bp_loggedin_user_domain() . bp_get_profile_slug() . '/edit/group/' . $fieldgroup_id );
 				$notification_link = trailingslashit( bp_loggedin_user_domain() . buddypress()->profile->slug . '/edit/group/' . $fieldgroup_id );
-				// $towrite = PHP_EOL . 'single item!: ' . print_r( $total_items, TRUE );
-				// $towrite = PHP_EOL . '$text: ' . print_r( $text, TRUE );
-				// $towrite .= PHP_EOL . '$notification_link: ' . print_r( $notification_link, TRUE );
-				// $fp = fopen('profile_group_notification.txt', 'a');
-				// fwrite($fp, $towrite);
+
 
 				if ( 'string' == $format ) {
-					$towrite = PHP_EOL . 'returning a string!';
-					$fp = fopen('profile_group_notification.txt', 'a');
-					fwrite($fp, $towrite);
 					return '<a href="' . $notification_link . '" title="Complete your Hub profile.">' . $text . '</a>';
 				} else {
-					$towrite = PHP_EOL . 'returning an array!';
-					$fp = fopen('profile_group_notification.txt', 'a');
-					fwrite($fp, $towrite);
 					return array(
 						'link' => $notification_link,
 						'text' => $text
@@ -724,10 +688,6 @@ class CC_GRPF_Public {
 	 */
 	public function process_group_requests_profile_form( $requesting_user_id, $admins, $group_id, $membership_id ) {
 		// Maybe @TODO: Do we need to check that this user can fill out the form? Seems unlikely?
-
-		// Bail if nonce does not verify
-		// if ( ! wp_verify_nonce( $_REQUEST['_wpnonce_bp_xprofile_edit'], 'bp_xprofile_edit_group_related' ) )
-		// 	return;
 
 		if ( check_admin_referer( 'groups_request_membership' ) ) {
 			$this->save_profile_form_from_post( $requesting_user_id );

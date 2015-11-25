@@ -236,9 +236,8 @@ class CC_Group_Member_Profile_Fields {
 		add_action( 'bp_group_members_list_item', array( $plugin_public, 'add_fieldgroups_to_group_member_list' ) );
 		add_action( 'bp_init', array( $plugin_public, 'modify_profile_search_links_on_group_member_dir' ) );
 
-		// @TODO: Scope these
 		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_styles') );
-		add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_scripts') );
+		// add_action( 'wp_enqueue_scripts', array( $plugin_public, 'enqueue_scripts') );
 
 		/* ASSOCIATE PROFILE GROUPS WITH HUBS ********************************/
 		// Add a meta area to the group's "admin>settings" tab.
