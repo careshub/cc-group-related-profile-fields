@@ -291,6 +291,8 @@ class CC_Group_Member_Profile_Fields {
 		add_filter('bp_xprofile_get_hidden_fields_for_user', array( $plugin_xprofile_vis, 'filter_get_hidden_fields_for_user' ), 10, 3);
 
 		// @ TODO: Change vis labels to reflect group relation, like in non-public groups, "All members" -> "All Hub members"
+		// After successful edit, add group link to the success message.
+		add_filter( 'xprofile_screen_edit_profile_success_message', array( $plugin_public, 'filter_xprofile_screen_edit_profile_success_message' ), 10, 2 );
 
 	}
 

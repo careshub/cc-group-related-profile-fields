@@ -901,6 +901,26 @@ class CC_GRPF_Public {
 		}
 	}
 
+	public function filter_xprofile_screen_edit_profile_success_message( $message, $field_group_id ) {
+		if ( ! empty( $field_group_id ) ) {
+			$group_ids = grpf_get_associated_groups_for_field_group( $field_group_id );
+			if ( ! empty( $group_ids ) ) {
+				$counter = 1;
+				$message .= ' Visit a related Hub: ';
+				foreach ( $group_ids as $group_id ) {
+					$group_obj = groups_get_group( array( 'group_id' => $group_id ) );
+					if ( $counter > 1 ) {
+						$message .= ', ';
+					}
+					$message .= '<a href="' . bp_get_group_permalink( $group_obj ) . '">' . bp_get_group_name( $group_obj ). '</a>';
+					$counter++;
+				}
+			}
+		}
+
+		return $message;
+	}
+
 	/* BULLPEN ***************************************************************/
 
 	/**
