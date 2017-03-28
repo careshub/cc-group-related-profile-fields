@@ -688,10 +688,7 @@ class CC_GRPF_Public {
 	 */
 	public function process_group_requests_profile_form( $requesting_user_id, $admins, $group_id, $membership_id ) {
 		// Maybe @TODO: Do we need to check that this user can fill out the form? Seems unlikely?
-
-		if ( check_admin_referer( 'groups_request_membership' ) ) {
-			$this->save_profile_form_from_post( $requesting_user_id );
-		}
+		$this->save_profile_form_from_post( $requesting_user_id );
 	}
 
 	/**
@@ -704,13 +701,10 @@ class CC_GRPF_Public {
 	 */
 	public function save_profile_form_from_post( $user_id ) {
 		// Check to see if any new information has been submitted
-		if ( isset( $_POST['field_ids'] ) ) {
+		if ( ! empty( $_POST['field_ids'] ) ) {
 
 			// Check the nonce
-			// check_admin_referer( 'bp_xprofile_edit' );
-
-			// Check we have field IDs
-			if ( empty( $_POST['field_ids'] ) ) {
+			if ( ! wp_verify_nonce( $_POST[ 'grpf_profile_fields_nonce' ], 'grpf_profile_fields' ) ) {
 				return;
 			}
 

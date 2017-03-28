@@ -89,7 +89,7 @@ function grpf_output_profile_group_form_fields( $field_group_id ) {
 
 		<input type="hidden" name="field_ids" id="field_ids" value="<?php bp_the_profile_field_ids(); ?>" />
 
-		<?php //wp_nonce_field( 'bp_xprofile_edit' ); ?>
+		<?php wp_nonce_field( 'grpf_profile_fields', 'grpf_profile_fields_nonce' ); ?>
 
 	<?php endwhile; endif;
 }
