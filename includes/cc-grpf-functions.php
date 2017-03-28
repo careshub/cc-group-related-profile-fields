@@ -65,6 +65,10 @@ function grpf_get_associated_groups_for_field_group( $field_group_id ) {
 
 	$group_ids = bp_xprofile_get_meta( $field_group_id, 'group', 'associated_with_hub', false );
 
+	if ( $group_ids === false ) {
+		$group_ids = array();
+	}
+
 	return array_map( 'intval', $group_ids );
 }
 /**
